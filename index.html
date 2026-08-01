@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>REx: Reincarnated - Live Wiki Tracker</title>
+  <title>REx: Reincarnated - Logs & Completion Tracker</title>
   <style>
     :root {
       --bg-color: #0f1117;
@@ -141,13 +141,28 @@
       margin-bottom: 15px;
       font-size: 13px;
     }
+
+    .comp-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .comp-item {
+      background: #0b0c10;
+      border: 1px solid var(--border-color);
+      padding: 10px 14px;
+      border-radius: 6px;
+      font-size: 13px;
+    }
   </style>
 </head>
 <body>
 
   <div class="nav-bar">
     <button class="nav-btn active" onclick="switchTab('logs')">Ore Finding Logs</button>
-    <button class="nav-btn" onclick="switchTab('comp')">Wiki Live Comp</button>
+    <button class="nav-btn" onclick="switchTab('comp')">Ore Comp</button>
   </div>
 
   <div class="config-box">
@@ -155,7 +170,7 @@
       <label for="usernameInput">Roblox Username</label>
       <input type="text" id="usernameInput" placeholder="Enter username...">
     </div>
-    <button class="action-btn" onclick="executeSearch()">Fetch Logs & Wiki</button>
+    <button class="action-btn" onclick="executeSearch()">Search Logs & Load Comp</button>
   </div>
 
   <div class="doc-page">
@@ -179,9 +194,9 @@
     </div>
 
     <div id="tab-comp" class="tab-content">
-      <h1>Live Fandom Wiki Sync</h1>
-      <div id="wikiSyncStatus" class="status-banner">Status: Idle</div>
-      <div id="wikiContainer"></div>
+      <h1>Ore Comp</h1>
+      <div id="compStatus" class="status-banner">Status: Idle</div>
+      <div id="compContainer" class="comp-grid"></div>
     </div>
   </div>
 
@@ -199,37 +214,46 @@
       }
     }
 
-    // Dynamic Wiki Data Scraper using AllOrigins CORS Proxy
-    async function fetchLiveWikiLayers() {
-      const statusBanner = document.getElementById('wikiSyncStatus');
-      statusBanner.innerText = "Status: Syncing with rex-reincarnated.fandom.com/wiki/Layers...";
+    // JSONP Handler to bypass CORS limits on GitHub Pages
+    function fetchJSONP(url) {
+      return new Promise((resolve, reject) => {
+        const callbackName = 'jsonp_cb_' + Math.round(100000 * Math.random());
+        window[callbackName] = function(data) {
+          delete window[callbackName];
+          document.body.removeChild(script);
+          resolve(data);
+        };
 
-      const targetUrl = encodeURIComponent("https://rex-reincarnated.fandom.com/wiki/Layers");
-      const proxyUrl = `https://api.allorigins.win/get?url=${targetUrl}`;
+        const script = document.createElement('script');
+        script.src = url + (url.indexOf('?') >= 0 ? '&' : '?') + 'callback=' + callbackName;
+        script.onerror = function() {
+          delete window[callbackName];
+          document.body.removeChild(script);
+          reject(new Error('JSONP request failed'));
+        };
+
+        document.body.appendChild(script);
+      });
+    }
+
+    async function fetchCompData() {
+      const statusBanner = document.getElementById('compStatus');
+      statusBanner.innerText = "Status: Loading Ore Comp data...";
+
+      // Fandom MediaWiki API endpoint using JSONP
+      const apiUrl = "https://rex-reincarnated.fandom.com/api.php?action=query&list=categorymembers&cmtitle=Category:Ores&cmlimit=500&format=json";
 
       try {
-        const response = await fetch(proxyUrl);
-        if (!response.ok) throw new Error("Network response failed");
-        
-        const data = await response.json();
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(data.contents, 'text/html');
-
-        // Extract layer titles/links directly from Fandom markup
-        const links = doc.querySelectorAll('.mw-parser-output a');
-        const layersFound = new Set();
-
-        links.forEach(link => {
-          const title = link.getAttribute('title') || '';
-          if (title.includes('Layer')) {
-            layersFound.add(title);
-          }
-        });
-
-        statusBanner.innerHTML = `<strong>Wiki Sync Complete:</strong> Successfully retrieved ${layersFound.size} Layer entries directly from Fandom.`;
-        return Array.from(layersFound);
+        const data = await fetchJSONP(apiUrl);
+        if (data && data.query && data.query.categorymembers) {
+          const items = data.query.categorymembers.map(m => m.title);
+          statusBanner.innerHTML = `<strong>Ore Comp Loaded:</strong> Successfully fetched ${items.length} entries.`;
+          return items;
+        } else {
+          throw new Error("Invalid response structure");
+        }
       } catch (err) {
-        statusBanner.innerHTML = `<strong style="color:var(--red-border);">Wiki Sync Error:</strong> Failed to bypass CORS. ${err.message}`;
+        statusBanner.innerHTML = `<strong style="color:var(--red-border);">Ore Comp Error:</strong> Unable to retrieve live entries (${err.message}).`;
         return [];
       }
     }
@@ -241,19 +265,16 @@
         return;
       }
 
-      // Fetch dynamic wiki entries
-      const wikiLayers = await fetchLiveWikiLayers();
-      
-      const container = document.getElementById('wikiContainer');
-      container.innerHTML = '<h3>Retrieved Wiki Layer Categories:</h3>';
+      const compItems = await fetchCompData();
+      const container = document.getElementById('compContainer');
+      container.innerHTML = '';
 
-      const ul = document.createElement('ul');
-      wikiLayers.forEach(layer => {
-        const li = document.createElement('li');
-        li.innerText = layer;
-        ul.appendChild(li);
+      compItems.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'comp-item';
+        div.innerText = item;
+        container.appendChild(div);
       });
-      container.appendChild(ul);
     }
   </script>
 </body>
