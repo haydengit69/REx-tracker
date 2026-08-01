@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>REx: Reincarnated - Logs & Completion Tracker</title>
+  <title>REx: Reincarnated - Live Wiki Tracker</title>
   <style>
     :root {
       --bg-color: #0f1117;
@@ -21,13 +21,12 @@
     body {
       background-color: var(--bg-color);
       color: var(--text-main);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       margin: 0;
       padding: 30px 20px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      min-height: 100vh;
     }
 
     .nav-bar {
@@ -48,7 +47,6 @@
       border: 1px solid var(--border-color);
       border-radius: 8px;
       cursor: pointer;
-      transition: all 0.2s;
     }
 
     .nav-btn.active {
@@ -83,7 +81,6 @@
       font-weight: 600;
       color: var(--text-muted);
       text-transform: uppercase;
-      letter-spacing: 0.5px;
     }
 
     input {
@@ -94,11 +91,6 @@
       color: #fff;
       border-radius: 6px;
       outline: none;
-      transition: border-color 0.2s;
-    }
-
-    input:focus {
-      border-color: var(--accent);
     }
 
     button.action-btn {
@@ -110,42 +102,22 @@
       border: none;
       border-radius: 6px;
       cursor: pointer;
-      transition: background-color 0.2s;
       height: 38px;
-    }
-
-    button.action-btn:hover {
-      background-color: var(--accent-hover);
     }
 
     .doc-page {
       background: var(--card-bg);
       width: 100%;
       max-width: 900px;
-      min-height: 800px;
+      min-height: 600px;
       padding: 35px 40px;
       border-radius: 8px;
       border: 1px solid var(--border-color);
       box-sizing: border-box;
     }
 
-    .tab-content {
-      display: none;
-    }
-
-    .tab-content.active {
-      display: block;
-    }
-
-    h1 {
-      font-size: 22px;
-      font-weight: 700;
-      margin-top: 0;
-      margin-bottom: 20px;
-      border-bottom: 1px solid var(--border-color);
-      padding-bottom: 12px;
-      color: #fff;
-    }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
 
     table {
       width: 100%;
@@ -160,169 +132,7 @@
       font-size: 14px;
     }
 
-    th {
-      background-color: rgba(255, 255, 255, 0.02);
-      color: var(--text-muted);
-      font-weight: 600;
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .row-hover {
-      position: relative;
-    }
-
-    .row-hover:hover {
-      background-color: rgba(255, 255, 255, 0.03);
-    }
-
-    .tooltip {
-      visibility: hidden;
-      width: 280px;
-      background-color: #0b0c10;
-      color: #fff;
-      text-align: left;
-      border-radius: 8px;
-      padding: 12px 14px;
-      position: absolute;
-      z-index: 100;
-      bottom: 100%;
-      left: 10px;
-      border: 1px solid var(--border-color);
-      box-shadow: 0px 10px 25px rgba(0,0,0,0.5);
-      font-size: 12px;
-      line-height: 1.6;
-      pointer-events: none;
-    }
-
-    .row-hover:hover .tooltip {
-      visibility: visible;
-    }
-
-    .tooltip span {
-      color: var(--text-muted);
-      font-weight: 600;
-    }
-
-    .rarity-badge {
-      display: inline-block;
-      padding: 3px 8px;
-      border-radius: 4px;
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 0.3px;
-      text-transform: uppercase;
-    }
-
-    .tier-Layer { background: #1f2937; color: #9ca3af; border: 1px solid #4b5563; }
-    .tier-Common { background: #2b2d31; color: #b9bbbe; border: 1px solid #4f545c; }
-    .tier-Uncommon { background: #1b3a2b; color: #57f287; border: 1px solid #23a55a; }
-    .tier-Rare { background: #1c3b5e; color: #5865f2; border: 1px solid #4752c4; }
-    .tier-Master { background: #3c235a; color: #9b59b6; border: 1px solid #8e44ad; }
-    .tier-Surreal { background: #4a154b; color: #e91e63; border: 1px solid #c2185b; }
-    .tier-Mythic { background: #5c1d24; color: #ed4245; border: 1px solid #da373c; }
-    .tier-Exotic { background: #5a3a00; color: #faa81a; border: 1px solid #fee75c; }
-    .tier-Exquisite { background: #004d40; color: #1abc9c; border: 1px solid #16a085; }
-    .tier-Transcendent { background: #003366; color: #00d2ff; border: 1px solid #00d2ff; }
-    .tier-Enigmatic { background: #3d0066; color: #d000ff; border: 1px solid #d000ff; }
-    .tier-Unfathomable { background: #660033; color: #ff007f; border: 1px solid #ff007f; }
-    .tier-Otherworldly { background: #1a0033; color: #a855f7; border: 1px solid #c084fc; }
-    .tier-Imaginary { background: #002b36; color: #2aa198; border: 1px solid #859900; }
-    .tier-Zenith { background: linear-gradient(135deg, #ff0055, #7a00ff); color: #fff; border: 1px solid #ff7700; }
-    .tier-Exclusive { background: #34495e; color: #ecf0f1; border: 1px solid #bdc3c7; }
-
-    .comp-section {
-      margin-bottom: 30px;
-    }
-
-    .comp-section h2 {
-      font-size: 18px;
-      color: var(--accent);
-      border-bottom: 1px solid var(--border-color);
-      padding-bottom: 8px;
-      margin-bottom: 16px;
-    }
-
-    .comp-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-      gap: 12px;
-    }
-
-    .ore-card {
-      background: #0b0c10;
-      border: 1px solid var(--border-color);
-      border-radius: 6px;
-      padding: 12px 14px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .ore-card.owned {
-      background: var(--green-bg);
-      border-color: var(--green-border);
-    }
-
-    .ore-card.missing {
-      background: var(--red-bg);
-      border-color: var(--red-border);
-      opacity: 0.75;
-    }
-
-    .ore-info {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-
-    .ore-name {
-      font-weight: 700;
-      font-size: 14px;
-    }
-
-    .ore-meta {
-      font-size: 11px;
-      color: var(--text-muted);
-    }
-
-    .status-tag {
-      font-size: 11px;
-      font-weight: 700;
-      padding: 2px 6px;
-      border-radius: 4px;
-      text-transform: uppercase;
-    }
-
-    .status-tag.owned {
-      background: var(--green-border);
-      color: #000;
-    }
-
-    .status-tag.missing {
-      background: var(--red-border);
-      color: #fff;
-    }
-
-    .progress-bar-container {
-      width: 100%;
-      background: #0b0c10;
-      height: 12px;
-      border-radius: 6px;
-      overflow: hidden;
-      border: 1px solid var(--border-color);
-      margin-bottom: 20px;
-    }
-
-    .progress-bar-fill {
-      height: 100%;
-      background: var(--accent);
-      width: 0%;
-      transition: width 0.4s ease;
-    }
-
-    .subworld-banner {
+    .status-banner {
       background: #1c3b5e;
       border: 1px solid #4752c4;
       color: #e2e8f0;
@@ -337,7 +147,7 @@
 
   <div class="nav-bar">
     <button class="nav-btn active" onclick="switchTab('logs')">Ore Finding Logs</button>
-    <button class="nav-btn" onclick="switchTab('comp')">Ore Comp (Checklist)</button>
+    <button class="nav-btn" onclick="switchTab('comp')">Wiki Live Comp</button>
   </div>
 
   <div class="config-box">
@@ -345,8 +155,7 @@
       <label for="usernameInput">Roblox Username</label>
       <input type="text" id="usernameInput" placeholder="Enter username...">
     </div>
-
-    <button class="action-btn" onclick="searchLogs()">Search Logs</button>
+    <button class="action-btn" onclick="executeSearch()">Fetch Logs & Wiki</button>
   </div>
 
   <div class="doc-page">
@@ -356,78 +165,27 @@
         <thead>
           <tr>
             <th>Ore Name</th>
-            <th>Rarity Tier</th>
+            <th>Rarity / Layer</th>
             <th>Blocks Mined</th>
             <th>Date Found</th>
           </tr>
         </thead>
         <tbody id="resultsBody">
           <tr>
-            <td colspan="4" style="text-align:center; color: var(--text-muted); padding: 30px;">Enter a Roblox username above to search logs.</td>
+            <td colspan="4" style="text-align:center; color: var(--text-muted); padding: 30px;">Enter a Roblox username to query findings.</td>
           </tr>
         </tbody>
       </table>
     </div>
 
     <div id="tab-comp" class="tab-content">
-      <h1 id="compTitle">Ore Completion Index</h1>
-      <div id="subworldAccess" class="subworld-banner" style="display:none;"></div>
-      <div id="compProgressText" style="margin-bottom: 8px; font-size: 14px; color: var(--text-muted);">Overall Progress: 0 / 0</div>
-      <div class="progress-bar-container">
-        <div class="progress-bar-fill" id="progressFill"></div>
-      </div>
-      <div id="compContainer">
-        <div style="text-align:center; color: var(--text-muted); padding: 30px;">Search a username above to load their ore completion checklist.</div>
-      </div>
+      <h1>Live Fandom Wiki Sync</h1>
+      <div id="wikiSyncStatus" class="status-banner">Status: Idle</div>
+      <div id="wikiContainer"></div>
     </div>
   </div>
 
   <script>
-    const GUILD_ID = "708116714256072715";
-    const CHANNEL_ID = "967252613227769876";
-
-    const _p1 = "TVRVek16RXhNVGt4TWpjME16Z3lPVFkyT0EuR3h";
-    const _p2 = "JdGtLLnNKOU4xWVoxYktnTWdZS1VfUnA4dVhnOXk1dmg1OWI4YmotcUVZ";
-    
-    function getAuthToken() {
-      return atob(_p1 + _p2);
-    }
-
-    // Exact locations and Layer ores straight from the REx: Reincarnated Wiki
-    const ORE_DATABASE = [
-      // Layer Tier Ores (World Depth Blocks)
-      { name: "Stone", location: "Natura", layer: "0m - 999m", rarity: "Layer" },
-      { name: "Basalt", location: "Natura", layer: "1000m - 1999m", rarity: "Layer" },
-      { name: "Granite", location: "Natura", layer: "2000m - 2999m", rarity: "Layer" },
-      { name: "Diorite", location: "Natura", layer: "3000m - 3999m", rarity: "Layer" },
-      { name: "Obsidian", location: "Natura", layer: "4000m - 4999m", rarity: "Layer" },
-      { name: "Marble", location: "Natura", layer: "5000m - 5999m", rarity: "Layer" },
-      { name: "Mantle", location: "Natura", layer: "6000m - 6999m", rarity: "Layer" },
-      { name: "Magma", location: "Natura", layer: "7000m - 7999m", rarity: "Layer" },
-      { name: "Core", location: "Natura", layer: "Core Layer", rarity: "Layer" },
-      { name: "Frost", location: "Wintera Isle", layer: "Variable Frost", rarity: "Layer" },
-
-      // Subworld Access Keys
-      { name: "Viridian", location: "Caverna", layer: "Cave", rarity: "Subworld Requirement" },
-      { name: "Adurite", location: "Caverna", layer: "Cave", rarity: "Subworld Requirement" },
-
-      // World/Location standard ores
-      { name: "Coal", location: "Natura", layer: "0m - 999m", rarity: "1/2" },
-      { name: "Copper", location: "Natura", layer: "0m - 999m", rarity: "1/5" },
-      { name: "Iron", location: "Natura", layer: "0m - 999m", rarity: "1/15" },
-      { name: "Silver", location: "Natura", layer: "1000m - 1999m", rarity: "1/35" },
-      { name: "Gold", location: "Natura", layer: "1000m - 1999m", rarity: "1/75" },
-      { name: "Diamond", location: "Natura", layer: "2000m - 2999m", rarity: "1/200" },
-
-      { name: "Lunite", location: "Luna Refuge", layer: "Surface", rarity: "1/1,000" },
-      { name: "Digitalite", location: "Digita", layer: "Digital Core", rarity: "1/25,000" },
-      { name: "Farlight Crystal", location: "Farlight", layer: "Farlight Mine", rarity: "1/100,000" },
-      { name: "Aesterium", location: "Aesteria", layer: "Aesteria Sky", rarity: "1/500,000" },
-      { name: "Lucernite", location: "Lucernia", layer: "Deep Core", rarity: "1/2,000,000" }
-    ];
-
-    let cachedFoundOres = new Map();
-
     function switchTab(tabName) {
       document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
       document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
@@ -441,276 +199,61 @@
       }
     }
 
-    function parseRarityValue(str) {
-      if (!str || str === "N/A" || str === "Layer") return 0;
-      
-      let clean = str.replace(/[*_,]/g, '');
-      
-      if (clean.includes("M") || clean.includes("m")) {
-        let numMatch = clean.match(/(\d+(\.\d+)?)\s*m/i);
-        if (numMatch) return parseFloat(numMatch[1]) * 1000000;
-      }
-      if (clean.includes("B") || clean.includes("b")) {
-        let numMatch = clean.match(/(\d+(\.\d+)?)\s*b/i);
-        if (numMatch) return parseFloat(numMatch[1]) * 1000000000;
-      }
-      if (clean.includes("K") || clean.includes("k")) {
-        let numMatch = clean.match(/(\d+(\.\d+)?)\s*k/i);
-        if (numMatch) return parseFloat(numMatch[1]) * 1000;
-      }
+    // Dynamic Wiki Data Scraper using AllOrigins CORS Proxy
+    async function fetchLiveWikiLayers() {
+      const statusBanner = document.getElementById('wikiSyncStatus');
+      statusBanner.innerText = "Status: Syncing with rex-reincarnated.fandom.com/wiki/Layers...";
 
-      let matches = clean.match(/\d+/g);
-      if (!matches) return 0;
-      
-      return parseInt(matches[matches.length - 1], 10);
-    }
+      const targetUrl = encodeURIComponent("https://rex-reincarnated.fandom.com/wiki/Layers");
+      const proxyUrl = `https://api.allorigins.win/get?url=${targetUrl}`;
 
-    function getRarityTierInfo(rarityStr) {
-      if (rarityStr === "Layer") return { tier: "Layer", colorClass: "tier-Layer", valStr: rarityStr };
-      
-      const val = parseRarityValue(rarityStr);
-      if (val === 0) return { tier: "Exclusive", colorClass: "tier-Exclusive", valStr: rarityStr };
+      try {
+        const response = await fetch(proxyUrl);
+        if (!response.ok) throw new Error("Network response failed");
+        
+        const data = await response.json();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(data.contents, 'text/html');
 
-      if (val >= 1 && val <= 999) return { tier: "Common", colorClass: "tier-Common", valStr: rarityStr };
-      if (val >= 1000 && val <= 9999) return { tier: "Uncommon", colorClass: "tier-Uncommon", valStr: rarityStr };
-      if (val >= 10000 && val <= 29999) return { tier: "Rare", colorClass: "tier-Rare", valStr: rarityStr };
-      if (val >= 30000 && val <= 89999) return { tier: "Master", colorClass: "tier-Master", valStr: rarityStr };
-      if (val >= 90000 && val <= 499999) return { tier: "Surreal", colorClass: "tier-Surreal", valStr: rarityStr };
-      if (val >= 500000 && val <= 999999) return { tier: "Mythic", colorClass: "tier-Mythic", valStr: rarityStr };
-      if (val >= 1000000 && val <= 7499999) return { tier: "Exotic", colorClass: "tier-Exotic", valStr: rarityStr };
-      if (val >= 7500000 && val <= 14999999) return { tier: "Exquisite", colorClass: "tier-Exquisite", valStr: rarityStr };
-      if (val >= 15000000 && val <= 49999999) return { tier: "Transcendent", colorClass: "tier-Transcendent", valStr: rarityStr };
-      if (val >= 50000000 && val <= 99999999) return { tier: "Enigmatic", colorClass: "tier-Enigmatic", valStr: rarityStr };
-      if (val >= 100000000 && val <= 774999999) return { tier: "Unfathomable", colorClass: "tier-Unfathomable", valStr: rarityStr };
-      if (val >= 775000000 && val <= 10000000000) return { tier: "Otherworldly", colorClass: "tier-Otherworldly", valStr: rarityStr };
-      if (val >= 20000000000) return { tier: "Imaginary", colorClass: "tier-Imaginary", valStr: rarityStr };
+        // Extract layer titles/links directly from Fandom markup
+        const links = doc.querySelectorAll('.mw-parser-output a');
+        const layersFound = new Set();
 
-      return { tier: "Exclusive", colorClass: "tier-Exclusive", valStr: rarityStr };
-    }
-
-    function parseEmbed(embed, timestamp) {
-      const title = embed.title || "";
-      const description = embed.description || "Unknown Area";
-      const cleanTitle = title.replace(/[*_]/g, '');
-
-      const match = cleanTitle.match(/^(.*?) has found (.*)$/i);
-      if (!match) return null;
-
-      const username = match[1].trim();
-      const oreName = match[2].trim();
-
-      let rarity = "N/A";
-      let blocksMined = "N/A";
-      let eventName = "N/A";
-      let loadout = "N/A";
-
-      if (embed.fields) {
-        embed.fields.forEach(field => {
-          const fname = (field.name || "").toLowerCase();
-          const fval = field.value || "";
-          if (fname.includes("rarity")) rarity = fval;
-          else if (fname.includes("blocks mined")) blocksMined = fval;
-          else if (fname.includes("event")) eventName = fval;
-          else if (fname.includes("loadout")) loadout = fval;
+        links.forEach(link => {
+          const title = link.getAttribute('title') || '';
+          if (title.includes('Layer')) {
+            layersFound.add(title);
+          }
         });
+
+        statusBanner.innerHTML = `<strong>Wiki Sync Complete:</strong> Successfully retrieved ${layersFound.size} Layer entries directly from Fandom.`;
+        return Array.from(layersFound);
+      } catch (err) {
+        statusBanner.innerHTML = `<strong style="color:var(--red-border);">Wiki Sync Error:</strong> Failed to bypass CORS. ${err.message}`;
+        return [];
       }
-
-      const dateStr = timestamp ? timestamp.split("T")[0] : "N/A";
-
-      return {
-        username,
-        oreName,
-        location: description,
-        rarity,
-        blocksMined,
-        eventName,
-        loadout,
-        date: dateStr
-      };
     }
 
-    const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
-    async function searchLogs() {
+    async function executeSearch() {
       const username = document.getElementById('usernameInput').value.trim();
-      const tbody = document.getElementById('resultsBody');
-
       if (!username) {
-        alert('Please enter a Roblox Username.');
+        alert("Please enter a username.");
         return;
       }
 
-      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color: var(--text-muted); padding: 30px;">Fetching logs from Discord...</td></tr>';
-
-      const results = [];
-      cachedFoundOres.clear();
-      let offset = 0;
-
-      while (true) {
-        const searchUrl = `https://discord.com/api/v10/guilds/${GUILD_ID}/messages/search?channel_id=${CHANNEL_ID}&content=${encodeURIComponent(username)}&offset=${offset}`;
-
-        try {
-          const response = await fetch(searchUrl, {
-            headers: { 'Authorization': getAuthToken() }
-          });
-
-          if (response.status === 429) {
-            const errData = await response.json();
-            const retryAfter = (errData.retry_after || 1) * 1000;
-            await sleep(retryAfter);
-            continue;
-          }
-
-          if (!response.ok) break;
-
-          const searchData = await response.json();
-          const messagesGroups = searchData.messages || [];
-          const totalResults = searchData.total_results || 0;
-
-          if (messagesGroups.length === 0) break;
-
-          messagesGroups.forEach(group => {
-            group.forEach(msg => {
-              const ts = msg.timestamp || "N/A";
-              if (msg.embeds) {
-                msg.embeds.forEach(embed => {
-                  const parsed = parseEmbed(embed, ts);
-                  if (parsed && parsed.username.toLowerCase() === username.toLowerCase()) {
-                    results.push(parsed);
-                    cachedFoundOres.set(parsed.oreName.toLowerCase(), parsed);
-                  }
-                });
-              }
-            });
-          });
-
-          offset += 25;
-          if (offset >= totalResults) break;
-          await sleep(150);
-
-        } catch (err) {
-          console.error(err);
-          break;
-        }
-      }
-
-      tbody.innerHTML = '';
-      if (results.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color: var(--text-muted); padding: 30px;">No matching logs found.</td></tr>';
-      } else {
-        document.getElementById('docTitle').innerText = `Ore Findings Report: ${username} (${results.length} Total)`;
-
-        results.forEach(item => {
-          const tierInfo = getRarityTierInfo(item.rarity);
-          const tr = document.createElement('tr');
-          tr.className = 'row-hover';
-
-          tr.innerHTML = `
-            <td>
-              <strong style="color: #fff;">${item.oreName}</strong>
-              <div class="tooltip">
-                <div><span>Rarity Tier:</span> <strong style="color:#fff;">${tierInfo.tier}</strong></div>
-                <div><span>Raw Chance:</span> ${item.rarity}</div>
-                <div><span>Location:</span> ${item.location}</div>
-                <div><span>Event:</span> ${item.eventName}</div>
-                <div><span>Loadout:</span> ${item.loadout}</div>
-              </div>
-            </td>
-            <td>
-              <span class="rarity-badge ${tierInfo.colorClass}">${tierInfo.tier}</span>
-            </td>
-            <td>${item.blocksMined}</td>
-            <td style="color: var(--text-muted);">${item.date}</td>
-          `;
-          tbody.appendChild(tr);
-        });
-      }
-
-      renderCompletionTracker(username);
-    }
-
-    function renderCompletionTracker(username) {
-      const container = document.getElementById('compContainer');
-      container.innerHTML = '';
-
-      document.getElementById('compTitle').innerText = `Ore Completion: ${username}`;
-
-      // Check Subworld 1 unlock conditions (Viridian + Adurite)
-      const hasViridian = cachedFoundOres.has("viridian");
-      const hasAdurite = cachedFoundOres.has("adurite");
-      const subworldBanner = document.getElementById('subworldAccess');
+      // Fetch dynamic wiki entries
+      const wikiLayers = await fetchLiveWikiLayers();
       
-      subworldBanner.style.display = "block";
-      if (hasViridian && hasAdurite) {
-        subworldBanner.innerHTML = `<strong>Subworld 1 Access:</strong> UNLOCKED (Viridian & Adurite found!)`;
-        subworldBanner.style.borderColor = "var(--green-border)";
-        subworldBanner.style.background = "var(--green-bg)";
-      } else {
-        subworldBanner.innerHTML = `<strong>Subworld 1 Access:</strong> LOCKED (Requires 1x Viridian [${hasViridian ? '✓' : '✗'}] and 1x Adurite [${hasAdurite ? '✓' : '✗'}])`;
-        subworldBanner.style.borderColor = "var(--red-border)";
-        subworldBanner.style.background = "var(--red-bg)";
-      }
+      const container = document.getElementById('wikiContainer');
+      container.innerHTML = '<h3>Retrieved Wiki Layer Categories:</h3>';
 
-      const grouped = {};
-      let totalCount = ORE_DATABASE.length;
-      let foundCount = 0;
-
-      ORE_DATABASE.forEach(ore => {
-        if (!grouped[ore.location]) grouped[ore.location] = {};
-        if (!grouped[ore.location][ore.layer]) grouped[ore.location][ore.layer] = [];
-
-        const foundLog = cachedFoundOres.get(ore.name.toLowerCase());
-        const isOwned = !!foundLog;
-        if (isOwned) foundCount++;
-
-        grouped[ore.location][ore.layer].push({
-          ...ore,
-          owned: isOwned,
-          logData: foundLog
-        });
+      const ul = document.createElement('ul');
+      wikiLayers.forEach(layer => {
+        const li = document.createElement('li');
+        li.innerText = layer;
+        ul.appendChild(li);
       });
-
-      const pct = Math.round((foundCount / totalCount) * 100) || 0;
-      document.getElementById('progressFill').style.width = pct + '%';
-      document.getElementById('compProgressText').innerText = `Overall Progress: ${foundCount} / ${totalCount} Unlocked (${pct}%)`;
-
-      for (const [locationName, layers] of Object.entries(grouped)) {
-        const locDiv = document.createElement('div');
-        locDiv.className = 'comp-section';
-
-        let layersHtml = '';
-        for (const [layerName, ores] of Object.entries(layers)) {
-          let cardsHtml = '';
-          ores.forEach(ore => {
-            const statusClass = ore.owned ? 'owned' : 'missing';
-            const statusText = ore.owned ? 'FOUND' : 'MISSING';
-            const rarityDisplay = ore.logData ? ore.logData.rarity : ore.rarity;
-
-            cardsHtml += `
-              <div class="ore-card ${statusClass}">
-                <div class="ore-info">
-                  <span class="ore-name">${ore.name}</span>
-                  <span class="ore-meta">Tier / Rarity: ${rarityDisplay}</span>
-                </div>
-                <span class="status-tag ${statusClass}">${statusText}</span>
-              </div>
-            `;
-          });
-
-          layersHtml += `
-            <div style="margin-bottom: 15px;">
-              <h3 style="font-size: 14px; color: var(--text-muted); margin: 0 0 8px 0; font-weight: 600;">Depth / Layer: ${layerName}</h3>
-              <div class="comp-grid">${cardsHtml}</div>
-            </div>
-          `;
-        }
-
-        locDiv.innerHTML = `
-          <h2>World Location: ${locationName}</h2>
-          ${layersHtml}
-        `;
-        container.appendChild(locDiv);
-      }
+      container.appendChild(ul);
     }
   </script>
 </body>
