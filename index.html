@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>REx: Reincarnated - Logs & Completion Tracker</title>
+  <title>REx: Reincarnated - Logs & Ore Comp</title>
   <style>
     :root {
       --bg-color: #0f1117;
@@ -138,23 +138,24 @@
       color: #e2e8f0;
       padding: 10px 14px;
       border-radius: 6px;
-      margin-bottom: 15px;
+      margin-bottom: 20px;
       font-size: 13px;
     }
 
     .comp-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-      gap: 10px;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 12px;
       margin-top: 15px;
     }
 
     .comp-item {
       background: #0b0c10;
       border: 1px solid var(--border-color);
-      padding: 10px 14px;
+      padding: 12px 16px;
       border-radius: 6px;
-      font-size: 13px;
+      font-size: 14px;
+      font-weight: 500;
     }
   </style>
 </head>
@@ -170,7 +171,7 @@
       <label for="usernameInput">Roblox Username</label>
       <input type="text" id="usernameInput" placeholder="Enter username...">
     </div>
-    <button class="action-btn" onclick="executeSearch()">Search Logs & Load Comp</button>
+    <button class="action-btn" onclick="executeSearch()">Search Logs & Ore Comp</button>
   </div>
 
   <div class="doc-page">
@@ -214,46 +215,50 @@
       }
     }
 
-    // JSONP Handler to bypass CORS limits on GitHub Pages
+    // JSONP Engine to bypass CORS restrictions on static hosts (GitHub Pages)
     function fetchJSONP(url) {
       return new Promise((resolve, reject) => {
-        const callbackName = 'jsonp_cb_' + Math.round(100000 * Math.random());
+        const callbackName = 'jsonp_cb_' + Math.floor(Math.random() * 1000000);
+        
         window[callbackName] = function(data) {
           delete window[callbackName];
-          document.body.removeChild(script);
+          if (script.parentNode) script.parentNode.removeChild(script);
           resolve(data);
         };
 
         const script = document.createElement('script');
-        script.src = url + (url.indexOf('?') >= 0 ? '&' : '?') + 'callback=' + callbackName;
+        const connector = url.includes('?') ? '&' : '?';
+        script.src = url + connector + 'callback=' + callbackName;
+        
         script.onerror = function() {
           delete window[callbackName];
-          document.body.removeChild(script);
-          reject(new Error('JSONP request failed'));
+          if (script.parentNode) script.parentNode.removeChild(script);
+          reject(new Error('Network response failed'));
         };
 
         document.body.appendChild(script);
       });
     }
 
-    async function fetchCompData() {
+    async function loadOreCompData() {
       const statusBanner = document.getElementById('compStatus');
       statusBanner.innerText = "Status: Loading Ore Comp data...";
 
-      // Fandom MediaWiki API endpoint using JSONP
+      // Requests category member lists via MediaWiki API
       const apiUrl = "https://rex-reincarnated.fandom.com/api.php?action=query&list=categorymembers&cmtitle=Category:Ores&cmlimit=500&format=json";
 
       try {
         const data = await fetchJSONP(apiUrl);
+        
         if (data && data.query && data.query.categorymembers) {
           const items = data.query.categorymembers.map(m => m.title);
-          statusBanner.innerHTML = `<strong>Ore Comp Loaded:</strong> Successfully fetched ${items.length} entries.`;
+          statusBanner.innerHTML = `<strong>Ore Comp Loaded:</strong> Retrieved ${items.length} total entries.`;
           return items;
         } else {
-          throw new Error("Invalid response structure");
+          throw new Error("Invalid payload structure");
         }
       } catch (err) {
-        statusBanner.innerHTML = `<strong style="color:var(--red-border);">Ore Comp Error:</strong> Unable to retrieve live entries (${err.message}).`;
+        statusBanner.innerHTML = `<strong style="color:var(--red-border);">Ore Comp Error:</strong> Unable to load data (${err.message}).`;
         return [];
       }
     }
@@ -265,9 +270,14 @@
         return;
       }
 
-      const compItems = await fetchCompData();
+      const compItems = await loadOreCompData();
       const container = document.getElementById('compContainer');
       container.innerHTML = '';
+
+      if (compItems.length === 0) {
+        container.innerHTML = '<div style="color: var(--text-muted); grid-column: 1/-1;">No entries found.</div>';
+        return;
+      }
 
       compItems.forEach(item => {
         const div = document.createElement('div');
