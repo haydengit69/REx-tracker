@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>REx: Reincarnated - Logs & Ore Comp</title>
+  <title>REx: Reincarnated - Ore Tracker & Ore Comp</title>
   <style>
     :root {
       --bg-color: #0f1117;
@@ -141,11 +141,26 @@
       font-size: 13px;
     }
 
+    .layer-group {
+      margin-top: 25px;
+      margin-bottom: 15px;
+    }
+
+    .layer-title {
+      font-size: 20px;
+      font-weight: 800;
+      color: #fff;
+      border-bottom: 2px solid var(--border-color);
+      padding-bottom: 6px;
+      margin-bottom: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
     .comp-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
       gap: 12px;
-      margin-top: 15px;
     }
 
     .comp-card {
@@ -168,14 +183,19 @@
     }
 
     .comp-name {
-      font-size: 15px;
+      font-size: 16px;
       font-weight: 700;
       color: #fff;
+      margin-bottom: 2px;
     }
 
     .comp-detail {
       font-size: 12px;
       color: var(--text-muted);
+    }
+
+    .comp-detail strong {
+      color: var(--text-main);
     }
 
     .comp-badge {
@@ -185,7 +205,7 @@
       border-radius: 4px;
       font-size: 11px;
       font-weight: 700;
-      margin-top: 4px;
+      margin-top: 6px;
       text-transform: uppercase;
     }
 
@@ -203,7 +223,7 @@
 <body>
 
   <div class="nav-bar">
-    <button class="nav-btn active" onclick="switchTab('logs')">Ore Finding Logs</button>
+    <button class="nav-btn active" onclick="switchTab('logs')">Ore Tracker</button>
     <button class="nav-btn" onclick="switchTab('comp')">Ore Comp</button>
   </div>
 
@@ -212,12 +232,12 @@
       <label for="usernameInput">Roblox Username</label>
       <input type="text" id="usernameInput" placeholder="Enter username...">
     </div>
-    <button class="action-btn" onclick="executeSearch()">Search Logs & Ore Comp</button>
+    <button class="action-btn" onclick="executeSearch()">Search</button>
   </div>
 
   <div class="doc-page">
     <div id="tab-logs" class="tab-content active">
-      <h1 id="docTitle">Ore Findings Report</h1>
+      <h1 id="docTitle">Ore Tracker Report</h1>
       <table>
         <thead>
           <tr>
@@ -238,13 +258,14 @@
     <div id="tab-comp" class="tab-content">
       <h1>Ore Comp (Exotic+)</h1>
       <div id="compStatus" class="status-banner">Status: Idle</div>
-      <div id="compContainer" class="comp-grid"></div>
+      <div id="compContainer"></div>
     </div>
   </div>
 
   <script>
     let parsedExoticOres = [];
-    let playerFoundOres = new Set();
+    // Map storing found player ore info keyed by lowercased ore name
+    let playerFoundOresMap = new Map();
 
     function switchTab(tabName) {
       document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
@@ -259,7 +280,6 @@
       }
     }
 
-    // Dynamic JSONP fetcher bypassing CORS
     function fetchJSONP(url) {
       return new Promise((resolve, reject) => {
         const callbackName = 'jsonp_cb_' + Math.floor(Math.random() * 1000000);
@@ -281,7 +301,6 @@
       });
     }
 
-    // Helper to parse numeric rarity strings (e.g. "1 in 250,000" or "250000")
     function parseRarityValue(str) {
       if (!str) return 0;
       const cleanStr = str.replace(/,/g, '');
@@ -290,7 +309,6 @@
       return parseInt(match[match.length - 1], 10);
     }
 
-    // Fetches and parses the main "Ores" page live tables directly from MediaWiki
     async function fetchWikiOresPage() {
       const statusBanner = document.getElementById('compStatus');
       statusBanner.innerText = "Status: Parsing live tables from wiki Ores page...";
@@ -313,7 +331,7 @@
         tables.forEach(table => {
           const rows = table.querySelectorAll('tr');
           rows.forEach((row, index) => {
-            if (index === 0) return; // Skip headers
+            if (index === 0) return;
 
             const cols = row.querySelectorAll('td');
             if (cols.length >= 3) {
@@ -322,12 +340,12 @@
               const layer = cols[2].textContent.trim();
               const rarityNum = parseRarityValue(rawRarity);
 
-              // Filter for Exotic+ (Rarity threshold 250,000+)
+              // Filter for Exotic+ (Rarity threshold >= 250,000)
               if (name && rarityNum >= 250000) {
                 extractedOres.push({
                   name: name,
                   rarity: rawRarity.includes('in') ? rawRarity : `1 in ${Number(rawRarity).toLocaleString()}`,
-                  layer: layer || 'Unknown Layer',
+                  layer: layer || 'Uncategorized Layer',
                   rarityValue: rarityNum
                 });
               }
@@ -335,10 +353,8 @@
           });
         });
 
-        // Deduplicate and sort by rarity descending
         const uniqueMap = new Map();
         extractedOres.forEach(item => uniqueMap.set(item.name.toLowerCase(), item));
-        
         parsedExoticOres = Array.from(uniqueMap.values()).sort((a, b) => b.rarityValue - a.rarityValue);
 
         statusBanner.innerHTML = `<strong>Ore Comp Loaded:</strong> Successfully parsed ${parsedExoticOres.length} Exotic+ entries from the wiki page.`;
@@ -355,27 +371,60 @@
       container.innerHTML = '';
 
       if (parsedExoticOres.length === 0) {
-        container.innerHTML = '<div style="color: var(--text-muted); grid-column: 1/-1;">No entries fetched yet.</div>';
+        container.innerHTML = '<div style="color: var(--text-muted);">No entries fetched yet.</div>';
         return;
       }
 
       let foundCount = 0;
 
+      // Group ores by layer name
+      const groupedByLayer = {};
       parsedExoticOres.forEach(ore => {
-        const isFound = playerFoundOres.has(ore.name.toLowerCase());
-        if (isFound) foundCount++;
+        const layerKey = ore.layer || 'Uncategorized Layer';
+        if (!groupedByLayer[layerKey]) {
+          groupedByLayer[layerKey] = [];
+        }
+        groupedByLayer[layerKey].push(ore);
+      });
 
-        const card = document.createElement('div');
-        card.className = `comp-card ${isFound ? 'found' : 'missing'}`;
+      // Build layer sections with big headers
+      Object.keys(groupedByLayer).forEach(layerName => {
+        const layerGroup = document.createElement('div');
+        layerGroup.className = 'layer-group';
 
-        card.innerHTML = `
-          <div class="comp-name">${ore.name}</div>
-          <div class="comp-detail"><strong>Rarity:</strong> ${ore.rarity}</div>
-          <div class="comp-detail"><strong>Layer:</strong> ${ore.layer}</div>
-          <div class="comp-badge">${isFound ? 'UNLOCKED' : 'LOCKED'}</div>
-        `;
+        const title = document.createElement('h2');
+        title.className = 'layer-title';
+        title.innerText = layerName;
+        layerGroup.appendChild(title);
 
-        container.appendChild(card);
+        const grid = document.createElement('div');
+        grid.className = 'comp-grid';
+
+        groupedByLayer[layerName].forEach(ore => {
+          const foundInfo = playerFoundOresMap.get(ore.name.toLowerCase());
+          const isFound = !!foundInfo;
+          if (isFound) foundCount++;
+
+          const card = document.createElement('div');
+          card.className = `comp-card ${isFound ? 'found' : 'missing'}`;
+
+          const blocksDisplay = isFound ? Number(foundInfo.blocksMined).toLocaleString() : '0';
+          const dateDisplay = isFound ? foundInfo.dateFound : 'Not Found';
+
+          card.innerHTML = `
+            <div class="comp-name">${ore.name}</div>
+            <div class="comp-detail"><strong>Rarity:</strong> ${ore.rarity}</div>
+            <div class="comp-detail"><strong>Layer:</strong> ${ore.layer}</div>
+            <div class="comp-detail"><strong>Blocks Mined:</strong> ${blocksDisplay}</div>
+            <div class="comp-detail"><strong>Date Found:</strong> ${dateDisplay}</div>
+            <div class="comp-badge">${isFound ? 'UNLOCKED' : 'LOCKED'}</div>
+          `;
+
+          grid.appendChild(card);
+        });
+
+        layerGroup.appendChild(grid);
+        container.appendChild(layerGroup);
       });
 
       statusBanner.innerHTML = `<strong>Completion Progress:</strong> ${foundCount} / ${parsedExoticOres.length} Exotics+ Unlocked (${Math.round((foundCount / parsedExoticOres.length) * 100)}%)`;
@@ -388,13 +437,14 @@
         return;
       }
 
-      // Fetch live table entries directly from wiki Ores page
       await fetchWikiOresPage();
 
       const resultsBody = document.getElementById('resultsBody');
       resultsBody.innerHTML = `<tr><td colspan="4" style="text-align:center; color: var(--text-muted); padding: 30px;">Loading logs for ${username}...</td></tr>`;
 
-      // Render updated visual cards
+      // Clear previous search finding stats
+      playerFoundOresMap.clear();
+
       renderOreComp();
     }
   </script>
