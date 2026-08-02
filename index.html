@@ -139,9 +139,9 @@
       border-bottom: 1px solid var(--border-color);
       padding-bottom: 12px;
       color: #fff;
+      text-align: center;
     }
 
-    /* Standard Table Styles */
     table {
       width: 100%;
       border-collapse: collapse;
@@ -151,7 +151,8 @@
     th, td {
       border-bottom: 1px solid var(--border-color);
       padding: 12px 14px;
-      text-align: left;
+      text-align: center;
+      vertical-align: middle;
       font-size: 14px;
     }
 
@@ -162,6 +163,7 @@
       font-size: 12px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
+      text-align: center;
     }
 
     .row-hover {
@@ -184,7 +186,8 @@
       position: absolute;
       z-index: 100;
       bottom: 100%;
-      left: 10px;
+      left: 50%;
+      transform: translateX(-50%);
       border: 1px solid var(--border-color);
       box-shadow: 0px 10px 25px rgba(0,0,0,0.5);
       font-size: 12px;
@@ -237,6 +240,7 @@
       border-bottom: 1px solid var(--border-color);
       padding-bottom: 8px;
       margin-bottom: 12px;
+      text-align: center;
     }
 
     .mini-table {
@@ -247,12 +251,15 @@
     .mini-table th {
       padding: 6px 8px;
       font-size: 11px;
+      text-align: center;
     }
 
     .mini-table td {
       padding: 8px;
       font-size: 12px;
       border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      text-align: center;
+      vertical-align: middle;
     }
 
     .cell-found {
@@ -265,7 +272,7 @@
       font-weight: 700;
     }
 
-    /* Rarity Badge Styles (Fully Restored from Old Script) */
+    /* Rarity Badge Styles */
     .rarity-badge {
       display: inline-block;
       padding: 3px 8px;
@@ -300,6 +307,7 @@
       border-radius: 6px;
       margin-bottom: 15px;
       font-size: 13px;
+      text-align: center;
     }
   </style>
 </head>
@@ -341,7 +349,7 @@
 
     <!-- Ore Comp Tab -->
     <div id="tab-comp" class="tab-content">
-      <h1>Ore Comp (Exotic+)</h1>
+      <h1>Ore Comp (Transcendent+)</h1>
       <div id="compStatus" class="status-banner">Status: Idle</div>
       <div id="layersGrid" class="layers-grid"></div>
     </div>
@@ -351,15 +359,14 @@
     const GUILD_ID = "708116714256072715";
     const CHANNEL_ID = "967252613227769876";
 
-    // Reconstructed token bypass
-    const _p1 = "TVRVek16RXhNVGt4TWpjME16Z3lPVFkyT0AuR3h";
+    const _p1 = "TVRVek16RXhNVGt4TWpjME16Z3lPVFkyT0EuR3h";
     const _p2 = "JdGtLLnNKOU4xWVoxYktnTWdZS1VfUnA4dVhnOXk1dmg1OWI4YmotcUVZ";
     
     function getAuthToken() {
       return atob(_p1 + _p2);
     }
 
-    let parsedExoticOres = [];
+    let parsedOres = [];
     let playerFoundMap = new Map();
 
     function switchTab(tabName) {
@@ -375,7 +382,6 @@
       }
     }
 
-    // Exact tier logic and matching from your old script
     function getRarityTierInfo(rarityStr) {
       if (!rarityStr || rarityStr === "N/A") {
         return { tier: "Common", colorClass: "tier-Common", valStr: "N/A", val: 0 };
@@ -453,11 +459,33 @@
             if (cols.length >= 3) {
               const name = cols[0].textContent.trim();
               const rawRarity = cols[1].textContent.trim();
-              const layer = cols[2].textContent.trim();
-              const tierInfo = getRarityTierInfo(rawRarity);
+              let layer = cols[2].textContent.trim();
 
-              // Exclude Mythics and below (Only keep Exotic+ / Rarity >= 1M)
-              if (name && tierInfo.val >= 1000000) {
+              const lowerLayer = layer.toLowerCase();
+              if (lowerLayer === "void") {
+                const lowerName = name.toLowerCase();
+                const caveOres = ["voidflower", "obscuralis", "kaleidium", "estrela", "pasivium", "erodimium", "vantivium", "andromidium", "magicis floreat", "noo s-sing. t1", "void reaver", "voyanesia", "obliveracy endmost", "auroral singularity", "scribbal", "nyctophyte", "sirius-x10", "retina", "phobetor"];
+                if (caveOres.some(o => lowerName.includes(o))) {
+                  layer = "Void Cave";
+                } else {
+                  layer = "Void Layer";
+                }
+              }
+
+              let tierInfo = getRarityTierInfo(rawRarity);
+
+              // Fix incorrect tier mappings for specific ores based on exact numerical thresholds (Enigmatic 50M-99.9M, Transcendent 15M-49.9M)
+              const lowerName = name.toLowerCase();
+              if (lowerName === "covellite") {
+                tierInfo = { tier: "Common", colorClass: "tier-Common", valStr: "1 in 500", val: 500 };
+              } else if (tierInfo.val >= 50000000 && tierInfo.val <= 99999999) {
+                tierInfo = { tier: "Enigmatic", colorClass: "tier-Enigmatic", valStr: rawRarity, val: tierInfo.val };
+              } else if (tierInfo.val >= 15000000 && tierInfo.val <= 49999999) {
+                tierInfo = { tier: "Transcendent", colorClass: "tier-Transcendent", valStr: rawRarity, val: tierInfo.val };
+              }
+
+              // Only keep Transcendent+ (Rarity >= 15,000,000)
+              if (name && tierInfo.val >= 15000000) {
                 extractedOres.push({
                   name: name,
                   rarityStr: rawRarity,
@@ -471,17 +499,16 @@
 
         const uniqueMap = new Map();
         extractedOres.forEach(item => uniqueMap.set(item.name.toLowerCase(), item));
-        parsedExoticOres = Array.from(uniqueMap.values());
+        parsedOres = Array.from(uniqueMap.values());
 
-        statusBanner.innerHTML = `<strong>Wiki Sync Complete:</strong> Loaded ${parsedExoticOres.length} Exotic+ ores.`;
-        return parsedExoticOres;
+        statusBanner.innerHTML = `<strong>Wiki Sync Complete:</strong> Loaded ${parsedOres.length} Transcendent+ ores.`;
+        return parsedOres;
       } catch (err) {
         statusBanner.innerHTML = `<strong>Error:</strong> Failed to fetch wiki tables.`;
         return [];
       }
     }
 
-    // Exact embed parsing logic from your old script (fixed username querying)
     function parseEmbed(embed, timestamp) {
       const title = embed.title || "";
       const description = embed.description || "Unknown Area";
@@ -530,7 +557,6 @@
       let offset = 0;
 
       while (true) {
-        // Use exact request format from the working old script
         const searchUrl = `https://discord.com/api/v10/guilds/${GUILD_ID}/messages/search?channel_id=${CHANNEL_ID}&content=${encodeURIComponent(username)}&offset=${offset}`;
 
         try {
@@ -595,7 +621,23 @@
       document.getElementById('docTitle').innerText = `Ore Findings Report: ${username} (${results.length} Total)`;
 
       results.forEach(item => {
-        const tierInfo = getRarityTierInfo(item.rarity);
+        let tierInfo = getRarityTierInfo(item.rarity);
+        
+        const foundWikiOre = parsedOres.find(o => o.name.toLowerCase() === item.oreName.toLowerCase());
+        if (foundWikiOre && (tierInfo.tier === "Common" || item.rarity === "N/A")) {
+          tierInfo = foundWikiOre.tierInfo;
+        }
+
+        if (item.oreName.toLowerCase() === "covellite") {
+          tierInfo = { tier: "Common", colorClass: "tier-Common", valStr: "1 in 500", val: 500 };
+        } else if (tierInfo.val >= 50000000 && tierInfo.val <= 99999999) {
+          tierInfo.tier = "Enigmatic";
+          tierInfo.colorClass = "tier-Enigmatic";
+        } else if (tierInfo.val >= 15000000 && tierInfo.val <= 49999999) {
+          tierInfo.tier = "Transcendent";
+          tierInfo.colorClass = "tier-Transcendent";
+        }
+
         const tr = document.createElement('tr');
         tr.className = 'row-hover';
 
@@ -604,7 +646,7 @@
             <strong style="color: #fff;">${item.oreName}</strong>
             <div class="tooltip">
               <div><span>Rarity Tier:</span> <strong style="color:#fff;">${tierInfo.tier}</strong></div>
-              <div><span>Raw Chance:</span> ${tierInfo.valStr}</div>
+              <div><span>Raw Chance:</span> ${tierInfo.valStr !== "N/A" ? tierInfo.valStr : item.rarity}</div>
               <div><span>Area / World:</span> ${item.world}</div>
               <div><span>Event:</span> ${item.eventName}</div>
               <div><span>Loadout:</span> ${item.loadout}</div>
@@ -627,8 +669,12 @@
       grid.innerHTML = '';
 
       const grouped = {};
-      parsedExoticOres.forEach(ore => {
-        const layerKey = ore.layer || 'Uncategorized';
+      parsedOres.forEach(ore => {
+        // Force specific miscategorized void ores out of Void Layer into Void Cave
+        let layerKey = ore.layer || 'Uncategorized';
+        if (layerKey.toLowerCase() === 'void layer') {
+          layerKey = 'Void Cave';
+        }
         if (!grouped[layerKey]) grouped[layerKey] = [];
         grouped[layerKey].push(ore);
       });
@@ -650,6 +696,7 @@
           <thead>
             <tr>
               <th>Ore</th>
+              <th>Rarity</th>
               <th>Blocks</th>
               <th>Status</th>
             </tr>
@@ -670,6 +717,7 @@
 
           tr.innerHTML = `
             <td style="color:#fff; font-weight:700;">${ore.name}</td>
+            <td><span class="rarity-badge ${ore.tierInfo.colorClass}" style="font-size: 10px; padding: 2px 5px;">${ore.tierInfo.tier}</span></td>
             <td style="font-family:monospace; color:var(--text-muted);">${blocks}</td>
             <td class="${statusClass}">${statusText}</td>
           `;
@@ -682,29 +730,34 @@
         grid.appendChild(card);
       });
 
-      const pct = parsedExoticOres.length > 0 ? Math.round((totalUnlocked / parsedExoticOres.length) * 100) : 0;
-      statusBanner.innerHTML = `<strong>Completion Progress:</strong> ${totalUnlocked} / ${parsedExoticOres.length} Exotics Unlocked (${pct}%)`;
+      const pct = parsedOres.length > 0 ? Math.round((totalUnlocked / parsedOres.length) * 100) : 0;
+      statusBanner.innerHTML = `<strong>Completion Progress:</strong> ${totalUnlocked} / ${parsedOres.length} Transcendent+ Ores Unlocked (${pct}%)`;
     }
 
     async function executeSearch() {
       const username = document.getElementById('usernameInput').value.trim();
+
       if (!username) {
-        alert("Please enter a username.");
+        alert("Please enter a Roblox username.");
         return;
       }
 
       document.getElementById('resultsBody').innerHTML = '<tr><td colspan="4" style="text-align:center; color: var(--text-muted); padding: 30px;">Fetching logs from Discord...</td></tr>';
 
-      await fetchWikiOresPage();
-      const logs = await searchDiscordLogs(username);
+      try {
+        await fetchWikiOresPage();
+        const logs = await searchDiscordLogs(username);
 
-      playerFoundMap.clear();
-      logs.forEach(log => {
-        playerFoundMap.set(log.oreName.toLowerCase(), log);
-      });
+        playerFoundMap.clear();
+        logs.forEach(log => {
+          playerFoundMap.set(log.oreName.toLowerCase(), log);
+        });
 
-      renderOreTracker(logs, username);
-      renderOreCompGrid();
+        renderOreTracker(logs, username);
+        renderOreCompGrid();
+      } catch (err) {
+        document.getElementById('resultsBody').innerHTML = `<tr><td colspan="4" style="text-align:center; color: var(--red-text); padding: 30px;">Error: ${err.message}</td></tr>`;
+      }
     }
   </script>
 </body>
